@@ -88,12 +88,10 @@ exam-platform/
 
 > ⚠️ **Update this section every session.** Max 300 words. This is the first thing the AI reads.
 
-**Last updated:** [DATE]
-**Overall progress:** [e.g., 20% / Week 1 of 4]
+Last updated: 2026-05-19
+Overall progress: ~15% / Backend auth complete
 
-[Write 3–6 sentences describing exactly where the project stands. Be specific. Example below:]
-
-> Local dev environment is fully set up on Windows. Docker is running PostgreSQL and Redis. Backend scaffolding is complete (Express + TypeScript + Prisma initialized). The Prisma schema has been written with all 12 tables and the first migration has been applied. Auth endpoints (register, login, refresh, logout) are implemented and tested in Postman. Frontend Next.js app is scaffolded with Tailwind. The login page UI is built but not yet wired to the API. Next task is wiring the login form to the backend and setting up the Zustand auth store.
+Backend is fully running on port 3001. Server health check confirmed working at /health. We are using Prisma 7 which has breaking changes from older versions: datasource url is no longer in schema.prisma — it lives in prisma.config.ts using defineConfig. Prisma 7 also requires a database adapter (PrismaPg from @prisma/adapter-pg) passed to the PrismaClient constructor. PrismaClient is imported from node_modules/.prisma/client/index.js directly (not from @prisma/client) due to Prisma 7 export changes. Auth system is fully implemented: register, login, logout, and refresh token with rotation. Access token returned in response body, refresh token in httpOnly cookie (7 days). JWT protect and requireAdmin middleware are ready. Frontend auth not started yet.
 
 ---
 
@@ -103,71 +101,47 @@ exam-platform/
 
 ---
 
-### Session 3 — 2024-01-17
+### Session 2 — 2026-05-19
 
 **Implemented:**
 
-- Wrote all 12 Prisma models in `schema.prisma`
-- Ran first migration: `npx prisma migrate dev --name init`
-- Created seed file with 1 admin user, 2 license categories, 3 sample questions
-- Auth service: `register()`, `login()`, `refreshTokens()`
-- Auth controller and routes wired to Express app
-- `requireAuth` JWT middleware implemented
+- Prisma schema (User, RefreshToken, Subscription, Role enum)
+- prisma.config.ts with defineConfig and DATABASE_URL (Prisma 7 requirement)
+- PrismaPg adapter wired into PrismaClient (Prisma 7 requirement)
+- Token utilities (generate access, generate refresh, verify, rotate)
+- Auth service (register, login, logout)
+- Auth controller with Zod validation
+- Auth routes: POST /api/auth/register|login|refresh|logout
+- protect + requireAdmin middleware
+- app.ts with CORS, cookieParser, express.json
+- server.ts running on port 3001
+- Health check confirmed working at GET /health
 
 **Key decisions:**
 
-- Access token expires in 15 min, refresh token in 30 days
-- Refresh token stored in httpOnly cookie (not localStorage)
-- Used `cuid()` for all primary keys (safer than sequential integers for public APIs)
+- Prisma 7 is installed — has 3 breaking changes vs older Prisma:
+  1. datasource url moved out of schema.prisma → into prisma.config.ts
+  2. PrismaClient requires an adapter (PrismaPg) in constructor
+  3. PrismaClient must be imported from node_modules/.prisma/client/index.js
+- Refresh token rotation on every /refresh call
+- Access token in response body (kept in memory on frontend)
+- Refresh token in httpOnly cookie (7 days)
+- bcrypt cost factor 12
+- ENV vars are: JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, FRONTEND_URL, PORT=3001
 
 **Files created/modified:**
 
-- `backend/prisma/schema.prisma` ← full schema
-- `backend/prisma/seed.ts` ← created
-- `backend/src/services/auth.service.ts` ← created
-- `backend/src/controllers/auth.controller.ts` ← created
-- `backend/src/routes/auth.routes.ts` ← created
-- `backend/src/middleware/auth.middleware.ts` ← created
-- `backend/src/app.ts` ← updated (auth routes mounted)
-
-**Blockers / open questions:**
-
-- ⚠️ Email sending not yet configured (Resend API key not obtained)
-- ❓ Confirm with client: does abandoning an exam mid-way refund clicks?
-
-**🔜 Next steps for AI:**
-
-1. Build Zustand auth store in frontend (`src/stores/auth.store.ts`)
-2. Build axios instance with token interceptor (`src/lib/api.ts`)
-3. Wire login page form to `POST /api/auth/login`
-4. Set up protected dashboard layout with redirect
-
----
-
-### Session 2 — 2024-01-16
-
-**Implemented:**
-
-- Windows dev environment fully set up
-- Docker running PostgreSQL + Redis via `docker-compose.yml`
-- Backend: `npm init`, all packages installed, TypeScript configured
-- Frontend: Next.js 14 scaffolded with Tailwind
-- Mobile: Expo app initialized
-- GitHub repo created, all code pushed
-
-**Key decisions:**
-
-- Using Docker only for DB/Redis, NOT for the app itself (simpler for beginner workflow)
-- Using Railway.app for production hosting (simpler than raw AWS EC2)
-- Mobile and web share the same Zustand store pattern and axios API client
-
-**Files created/modified:**
-
-- `docker-compose.yml` ← created
-- `backend/src/app.ts`, `backend/src/server.ts` ← created
-- `backend/.env` ← created (not on GitHub)
-- `frontend/.env.local` ← created (not on GitHub)
-- `backend/tsconfig.json`, `backend/package.json` ← configured
+- backend/prisma/schema.prisma
+- backend/prisma.config.ts
+- backend/src/lib/prisma.ts
+- backend/src/utils/token.ts
+- backend/src/services/auth.service.ts
+- backend/src/controllers/auth.controller.ts
+- backend/src/routes/auth.routes.ts
+- backend/src/middleware/protect.ts
+- backend/src/app.ts
+- backend/src/server.ts
+- backend/.env
 
 **Blockers / open questions:**
 
@@ -175,39 +149,8 @@ exam-platform/
 
 **🔜 Next steps for AI:**
 
-1. Write full Prisma schema (all 12 tables)
-2. Run migration
-3. Build auth service + controller + routes
-
----
-
-### Session 1 — 2024-01-15
-
-**Implemented:**
-
-- Defined project requirements and scope
-- Chose tech stack and architecture
-- Created full day-by-day build plan (saved in docs/)
-
-**Key decisions:**
-
-- Next.js over plain React: SSR, routing, API routes all in one
-- PostgreSQL over MongoDB: relational data (subscriptions, clicks, scores) fits SQL well
-- Hybrid subscription: time OR clicks (whichever runs out first)
-
-**Files created/modified:**
-
-- `docs/platform-blueprint.md` ← full architecture reference
-- `docs/workspace-setup-windows.md` ← dev environment guide
-
-**Blockers / open questions:**
-
-- ❓ Client needs to confirm: PayPal required or Stripe only?
-- ❓ Video DRM level: signed URLs sufficient or full Widevine needed?
-
-**🔜 Next steps for AI:**
-
-1. Set up Windows dev environment (done in Session 2)
+1. Before starting, ask for: frontend/package.json, frontend/.env.local, frontend/src/app folder structure
+2. Build frontend auth: Zustand auth store, Axios interceptor with auto-refresh, login page, register page
 
 ---
 
