@@ -89,6 +89,16 @@ exam-platform/
 > ⚠️ **Update this section every session.** Max 300 words. This is the first thing the AI reads.
 
 Last updated: 2026-05-19
+Overall progress: ~30% / Dashboard shell complete
+
+Backend: /api/auth/me added (GET, protected). All auth routes working: register, login, logout, refresh, me. Frontend: full auth flow working — Axios instance with auto-refresh interceptor, Zustand authStore with hydrate() action, Providers component runs hydrate() on app load. Next.js middleware.ts handles route protection via refreshToken cookie. Root page redirects to /dashboard. Dashboard layout complete: dark sidebar (slate-950/900), responsive with mobile drawer, shows admin link for ADMIN role. Dashboard home page complete with stat cards and subscription banner. lucide-react installed. No real data wired yet — all stats are placeholders.
+
+updated: 2026-05-19
+Overall progress: ~20% / Frontend auth in progress
+
+Backend fully running on port 3001, health check confirmed. Prisma 7 with PrismaPg adapter, auth routes all working. Frontend started: Axios instance with auto-refresh interceptor done (src/lib/axios.ts), Zustand auth store done (src/stores/authStore.ts), login page done at (auth)/login/page.tsx accessible at /login. Register page at (auth)/register/page.tsx accessible at /register. No dashboard or protected routes yet.
+
+updated: 2026-05-19
 Overall progress: ~15% / Backend auth complete
 
 Backend is fully running on port 3001. Server health check confirmed working at /health. We are using Prisma 7 which has breaking changes from older versions: datasource url is no longer in schema.prisma — it lives in prisma.config.ts using defineConfig. Prisma 7 also requires a database adapter (PrismaPg from @prisma/adapter-pg) passed to the PrismaClient constructor. PrismaClient is imported from node_modules/.prisma/client/index.js directly (not from @prisma/client) due to Prisma 7 export changes. Auth system is fully implemented: register, login, logout, and refresh token with rotation. Access token returned in response body, refresh token in httpOnly cookie (7 days). JWT protect and requireAdmin middleware are ready. Frontend auth not started yet.
@@ -100,6 +110,48 @@ Backend is fully running on port 3001. Server health check confirmed working at 
 > Reverse chronological. Most recent session at the TOP. One entry per session.
 
 ---
+
+### Session 3 — 2026-05-19
+
+**Implemented:**
+
+- Backend: GET /api/auth/me (protect middleware + prisma user lookup)
+- Frontend: authStore hydrate() action (refresh → /me on app load)
+- Frontend: Providers component (runs hydrate on mount)
+- Frontend: layout.tsx updated to wrap with Providers
+- Frontend: middleware.ts (edge route protection via refreshToken cookie)
+- Frontend: page.tsx replaced (redirects / → /dashboard)
+- Frontend: (dashboard)/layout.tsx — dark sidebar, mobile drawer, admin link
+- Frontend: (dashboard)/dashboard/page.tsx — stat cards + subscription banner
+
+**Key decisions:**
+
+- hydrate() calls /refresh first (to get access token) then /me (to get user) — two calls but clean separation
+- middleware uses refreshToken cookie as auth proxy (can't verify JWT at edge without secret)
+- Admin route protection is client-side in layout (role in memory, not in cookie)
+- Dark theme: slate-950 bg, slate-900 sidebar, indigo-600 accent
+
+**Files created/modified:**
+
+- backend/src/controllers/auth.controller.ts (added me export)
+- backend/src/routes/auth.routes.ts (added GET /me)
+- frontend/src/stores/authStore.ts (added isHydrated + hydrate())
+- frontend/src/components/providers.tsx
+- frontend/src/app/layout.tsx
+- frontend/src/middleware.ts
+- frontend/src/app/page.tsx
+- frontend/src/app/(dashboard)/layout.tsx
+- frontend/src/app/(dashboard)/dashboard/page.tsx
+
+**Blockers / open questions:**
+
+- None
+
+**🔜 Next steps for AI:**
+
+1. Ask for current file tree and any errors encountered
+2. Build (dashboard)/courses/page.tsx
+3. Build (dashboard)/videos/page.tsx
 
 ### Session 2 — 2026-05-19
 

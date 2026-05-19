@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { z } from "zod";
 import { registerUser, loginUser, logoutUser } from "../services/auth.service";
 import { rotateRefreshToken } from "../utils/token";
+import { AuthRequest } from "../middleware/protect";
+import { prisma } from "../lib/prisma";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -78,6 +80,19 @@ export async function logout(req: Request, res: Response) {
     if (token) await logoutUser(token);
     res.clearCookie("refreshToken");
     res.status(200).json({ message: "Logged out" });
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+export async function me(req: AuthRequest, res: Response) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+      select: { id: true, name: true, email: true, role: true },
+    });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.status(200).json({ user });
   } catch (err: any) {
     res.status(500).json({ message: err.message });
   }
