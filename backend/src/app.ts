@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes";
+import courseRoutes from "./routes/course.routes";
+import videoRoutes from "./routes/video.routes";
 
 const app = express();
 
@@ -14,10 +16,10 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/videos", videoRoutes);
 
-// Health check
 app.get("/health", (_, res) => res.json({ status: "ok" }));
 
 export default app;

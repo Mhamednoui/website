@@ -5,17 +5,18 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
-model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
-  password       String
-  name           String
-  role           Role     @default(USER)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
 
-  subscription   Subscription?
-  refreshTokens  RefreshToken[]
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  name          String
+  role          Role           @default(USER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  subscription  Subscription?
+  refreshTokens RefreshToken[]
 }
 
 model RefreshToken {
@@ -35,6 +36,35 @@ model Subscription {
   expiresAt        DateTime
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model Course {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  thumbnailUrl String?
+  published   Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  videos      Video[]
+}
+
+model Video {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  thumbnailUrl String?
+  hlsUrl      String?  // CloudFront signed HLS URL (set when streaming)
+  s3Key       String?  // Raw S3 object key — source of truth for the file
+  duration    Int?     // seconds
+  order       Int      @default(0)
+  published   Boolean  @default(false)
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum Role {

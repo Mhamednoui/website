@@ -88,7 +88,17 @@ exam-platform/
 
 > ⚠️ **Update this section every session.** Max 300 words. This is the first thing the AI reads.
 
-Last updated: 2026-05-19
+Last updated: 2026-05-21
+Overall progress: ~50% / Video player page complete
+
+Backend: All auth routes working. Course + Video models migrated. Routes /api/courses and /api/videos fully wired with protect + requireSubscription. New endpoint POST /api/videos/:id/stream-url returns hlsUrl directly now (Phase 1); designed to swap to CloudFront signed URLs (Phase 2) with zero route/controller changes — only video.service.ts getStreamUrl() needs updating. Frontend: Courses page complete. Videos page complete with course filter tabs — video cards now link to /videos/[id]. Video player page at (dashboard)/videos/[id]/page.tsx complete: fetches metadata + stream URL in parallel, Video.js + HLS.js initialized via dynamic import (no SSR), custom indigo-themed CSS overrides, four states handled (loading skeleton, error, no_stream, ready). VideoPlayer.tsx is a reusable component with proper cleanup on unmount. next.config.ts has webpack fallback for video.js browser bundle. No real video data seeded yet — player will show "coming soon" state until hlsUrl is set in DB.
+
+updated: 2026-05-21
+Overall progress: ~40% / Courses + Videos pages complete, bugs fixed
+
+Backend: All auth routes working. Course and Video models added to Prisma schema and migrated. Routes /api/courses and /api/videos fully wired with protect + requireSubscription middleware. Controllers fixed: req.params destructured correctly to avoid string | string[] TS error. Prisma generate must be run after migration for course/video accessors to appear. Frontend: Courses page complete — grid of course cards, subscription gate, skeleton loading. Videos page complete — course filter tabs + video grid, subscription gate, skeleton loading, hover play overlay, duration badge. setState-in-effect lint error fixed using Promise.resolve().then() deferral + cancelled flag pattern. Shared types in src/types/index.ts. SubscriptionWall reusable component done. No video player yet — clicking a video card does nothing.
+
+updated: 2026-05-19
 Overall progress: ~30% / Dashboard shell complete
 
 Backend: /api/auth/me added (GET, protected). All auth routes working: register, login, logout, refresh, me. Frontend: full auth flow working — Axios instance with auto-refresh interceptor, Zustand authStore with hydrate() action, Providers component runs hydrate() on app load. Next.js middleware.ts handles route protection via refreshToken cookie. Root page redirects to /dashboard. Dashboard layout complete: dark sidebar (slate-950/900), responsive with mobile drawer, shows admin link for ADMIN role. Dashboard home page complete with stat cards and subscription banner. lucide-react installed. No real data wired yet — all stats are placeholders.
@@ -110,6 +120,82 @@ Backend is fully running on port 3001. Server health check confirmed working at 
 > Reverse chronological. Most recent session at the TOP. One entry per session.
 
 ---
+
+### Session 6 — 2026-05-21
+
+**Implemented:**
+
+- Backend: getStreamUrl() in video.service.ts — returns hlsUrl (Phase 1, CloudFront-ready)
+- Backend: getStreamUrl controller + POST /api/videos/:id/stream-url route (protect + requireSubscription)
+- Frontend: VideoPlayer.tsx — Video.js + HLS.js, dynamic import (no SSR), proper dispose on unmount
+- Frontend: globals.css — Video.js dark theme overrides (indigo accent, gradient control bar)
+- Frontend: (dashboard)/videos/[id]/page.tsx — parallel fetch, 4 state machine (loading/error/no_stream/ready)
+- Frontend: videos/page.tsx — video cards converted from div to Link pointing to /videos/[id]
+- Frontend: next.config.ts — webpack fs/net/tls fallback for video.js browser bundle
+- Backend: npm install @aws-sdk/cloudfront-signer (ready for Phase 2)
+- Frontend: npm install video.js videojs-http-streaming @types/video.js
+
+**Key decisions:**
+
+- stream-url is POST not GET — semantically it "creates" a temporary signed resource
+- Video.js initialized via createElement('video-js') pattern — avoids React hydration conflicts
+- dynamic() with ssr:false — video.js cannot run in Node.js/SSR context
+- State machine pattern (loading/error/no_stream/ready) instead of multiple booleans — cleaner and exhaustive
+- Parallel Promise.all for video metadata + stream URL — faster page load
+- getStreamUrl() isolated in service layer — Phase 2 CloudFront upgrade touches only that one function
+
+**Files created/modified:**
+
+- backend/src/services/video.service.ts
+- backend/src/controllers/video.controller.ts
+- backend/src/routes/video.routes.ts
+- frontend/src/components/VideoPlayer.tsx (new)
+- frontend/src/app/globals.css
+- frontend/src/app/(dashboard)/videos/[id]/page.tsx (new)
+- frontend/src/app/(dashboard)/videos/page.tsx
+- frontend/next.config.ts
+
+**Blockers / open questions:**
+
+- No real HLS video data in DB yet — player shows "coming soon" until hlsUrl is seeded
+- CloudFront signed URLs (Phase 2) not implemented — waiting on AWS setup
+
+**🔜 Next steps for AI:**
+
+1. Ask for current file tree and any errors
+2. Build GET /api/subscriptions/me + wire dashboard stat cards to real data
+3. Build /pricing page (static UI, no Stripe yet)
+4. Then Day 9: QCM exam engine backend
+
+### Session 5 — 2026-05-21
+
+**Implemented:**
+
+- Fixed TS error in course/video controllers: destructure req.params instead of passing directly
+- Fixed Prisma accessor error: prisma.course / prisma.video only available after `npx prisma generate`
+- Fixed React lint error in videos page: setVideosLoading moved out of synchronous effect body using Promise.resolve().then() deferral + cancelled flag + AbortController cleanup
+
+**Key decisions:**
+
+- Promise.resolve().then() pattern defers setState out of synchronous effect body without adding dependencies
+- cancelled flag prevents stale state updates if effect re-runs before fetch completes
+- AbortController wired up for future fetch cancellation (axios doesn't use it yet but the ref is in place)
+
+**Files created/modified:**
+
+- backend/src/controllers/course.controller.ts
+- backend/src/controllers/video.controller.ts
+- frontend/src/app/(dashboard)/videos/page.tsx
+
+**Blockers / open questions:**
+
+- None
+
+**🔜 Next steps for AI:**
+
+1. Ask for current file tree and any errors
+2. Build video player page at (dashboard)/videos/[id]/page.tsx using Video.js + HLS.js
+3. Build (dashboard)/exams/page.tsx
 
 ### Session 3 — 2026-05-19
 
